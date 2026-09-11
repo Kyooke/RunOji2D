@@ -111,7 +111,7 @@ void Player::Update()
 	{
 		if (currentSpeed > 0.0f)
 		{
-			float decel = isGrounded ? (isBraking ? BRAKE : FRICTION) : FRICTION * AIR_CONTROL; 
+			float decel = isGrounded ? (isBraking ? BRAKE : FRICTION) : FRICTION * AIR_CONTROL;
 			currentSpeed -= decel;
 			if (currentSpeed < 0.0f) currentSpeed = 0.0f;
 			move = P_MOVE[pdirection];
