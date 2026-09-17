@@ -24,83 +24,80 @@ CsvReader::~CsvReader()
 //CSVファイルのロード
 bool CsvReader::Load(std::string fileName)
 {
-	//ファイルを開く
-	HANDLE hFile;
-	hFile = CreateFile(fileName.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-	//開けなかった
+	HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		std::string message = "「" + fileName + "」が開けません。\n開いている場合は閉じてください。";
-		MessageBox(NULL, message.c_str(), "BaseProjDx9エラー", MB_OK);
-
+		MessageBox(NULL, message.c_str(), "エラー", MB_OK);
 		return false;
 	}
 
-	//ファイルのサイズ（文字数）を調べる
 	DWORD fileSize = GetFileSize(hFile, NULL);
 
-	//すべての文字を入れられる配列を用意
-	char* temp;
-	temp = new char[fileSize];
-
-	//ファイルの中身を配列に読み込む
+	// ★ 安全に文字列として読み込むため、+1 サイズにして \0 を保証する
+	char* temp = new char[fileSize + 1];
 	DWORD dwBytes = 0;
 	ReadFile(hFile, temp, fileSize, &dwBytes, NULL);
-
-	//開いたファイルを閉じる
+	temp[fileSize] = '\0'; // 終端文字を追加！
 	CloseHandle(hFile);
 
-	//1行のデータを入れる配列
-	std::vector<std::string>	line;
-
-	//調べる文字の位置
-	DWORD index = 0;
-
-	//最後の文字まで繰り返す
-	while (index < fileSize)
-	{
-		//index文字目から「,」か「改行」までの文字列を取得
-		std::string val;
-		GetToComma(&val, temp, &index);
-
-		//文字数が0だったということは行末
-		if (val.length() - 1 == 0)
-		{
-			//_dataに1行分追加
-			data_.push_back(line);
-
-			//1行データをクリア
-			line.clear();
-
-			//index++;
-			continue;
-		}
-
-		//1行分のデータに追加
-		line.push_back(val);
-	}
-
-	//読み込んだデータは開放する
+	// stringとして保持する
+	std::string fileContent(temp, fileSize);
 	delete[] temp;
 
-	//成功
+	data_.clear();
+	std::vector<std::string> line;
+	DWORD index = 0;
+
+	while (index < fileSize)
+	{
+		std::string val;
+		// fileContent を渡すようにする
+		while (index < fileSize && fileContent[index] != ',' && fileContent[index] != '\n' && fileContent[index] != '\r')
+		{
+			val += fileContent[index];
+			index++;
+		}
+
+		// 改行やカンマのスキップ
+		if (index < fileSize) {
+			char c = fileContent[index];
+			index++;
+			// \r\n などの連続改行に対応
+			if (c == '\r' && index < fileSize && fileContent[index] == '\n') {
+				index++;
+			}
+		}
+
+		line.push_back(val);
+
+		// 行末（改行）に達したときの判定
+		// （次の文字がない、あるいは今のが改行だった場合など）
+		if (index >= fileSize || fileContent[index - 1] == '\n' || fileContent[index - 1] == '\r')
+		{
+			data_.push_back(line);
+			line.clear();
+		}
+	}
+
 	return true;
 }
 
 //「,」か「改行」までの文字列を取得
-void CsvReader::GetToComma(std::string *result, std::string data, DWORD* index)
+void CsvReader::GetToComma(std::string* result, std::string data, DWORD* index)
 {
-	//「,」まで一文字ずつresultに入れる
-	while (data[*index] != ',' && data[*index] != '\n'&& data[*index] != '\r')
+	// ★ 文字列の範囲内であるかチェックする安全ガードを追加
+	while (*index < data.length() && data[*index] != ',' && data[*index] != '\n' && data[*index] != '\r')
 	{
 		*result += data[*index];
 		(*index)++;
 	}
 
-	//最後に「\0」を付ける
+	if (*index < data.length()) {
+		(*index)++; // カンマや改行をスキップ
+	}
+
 	*result += '\0';
-	(*index)++;
 }
 
 //指定した位置のデータを文字列で取得

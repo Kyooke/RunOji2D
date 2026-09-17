@@ -43,12 +43,6 @@ void TestScene::Update()
 
 }
 
-//やること！
-// 餌を数えて、残り餌数を表示
-// スコアを表示 
-// やり方は任せる！
-// sprintfでCの文字列を直で作ってもいいよ
-
 //描画
 void TestScene::Draw()
 {
@@ -57,7 +51,20 @@ void TestScene::Draw()
 	sprintf(buffer, "%010d", myScore);
 	scrText = "SCORE:" + std::string(buffer);
 	pText_->Draw(500, 50, scrText.c_str());
-	pText_->Draw(500, 100, scrText.c_str());
+
+	int foodCount = 0;
+
+	for (auto& child : *GetChildList())
+	{
+		if (child->GetObjectName() == "Food")
+		{
+			foodCount++;
+		}
+	}
+
+	char foodBuffer[256];
+	sprintf(foodBuffer, "REMAIN FOOD: %d", foodCount);
+	pText_->Draw(500, 100, foodBuffer);
 }
 
 //開放

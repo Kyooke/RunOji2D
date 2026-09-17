@@ -212,15 +212,20 @@ void Player::UpdateJump()
 void Player::ResolveWallCollision(XMVECTOR& pos, const XMVECTOR& move)
 {
 	gmap = ground_->GetMapData();
-	int mapWidth  = (int)gmap[0].size();
+	int mapWidth = (int)gmap[0].size();
 	int mapHeight = (int)gmap.size();
 	XMFLOAT3 wpos = transform_.position_;
-	int mapX = (int)((wpos.x + BLOCK_SIZE / 2.0f) / BLOCK_SIZE);
-	int mapZ = 1; // 外壁はすべての行に存在するため固定行で参照
 
-	if (mapX >= 0 && mapX < mapWidth && mapZ >= 0 && mapZ < mapHeight)
+	// Ground.cpp の配置計算の逆算：
+	// worldX = i * BLOCK_INTERVAL_X  =>  i = worldX / BLOCK_INTERVAL_X
+	// worldY = (mapHeight - 1 - j) * BLOCK_INTERVAL_Y  =>  j = mapHeight - 1 - (worldY / BLOCK_INTERVAL_Y)
+	int mapX = (int)((wpos.x + BLOCK_SIZE / 2.0f) / BLOCK_SIZE); // または wpos.x / BLOCK_INTERVAL_X
+	int mapY = mapHeight - 1 - (int)((wpos.y) / BLOCK_INTERVAL_Y);
+
+	if (mapX >= 0 && mapX < mapWidth && mapY >= 0 && mapY < mapHeight)
 	{
-		if (gmap[mapZ][mapX] == 1 && (pdirection == PLAYER_LEFT || pdirection == PLAYER_RIGHT))
+		// プレイヤーの位置にブロック（1）がある場合、移動を巻き戻す
+		if (gmap[mapY][mapX] == 1)
 		{
 			pos = pos - currentSpeed * move;
 			XMStoreFloat3(&transform_.position_, pos);
