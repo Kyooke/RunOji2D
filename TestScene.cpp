@@ -8,42 +8,44 @@
 namespace {
 	Ground* pGround;
 	const int CAMERA_HEIGHT = 8.0f;
-	XMFLOAT3 START_POS = { 15.0f, 0.75, 0.5f };
-	const float END_POS_X = 43.0f;
+	XMFLOAT3 START_POS = { 15.0f, 0.75f, 0.5f };
 }
 
-//コンストラクタ
-TestScene::TestScene(GameObject * parent)
+TestScene::TestScene(GameObject* parent)
 	: GameObject(parent, "TestScene"), myScore(0)
 {
 }
 
-//初期化
 void TestScene::Initialize()
-{	
-	//pWp = Instantiate<Weapon>(this);
+{
 	pPlayer_ = Instantiate <Player>(this);
 	pGround = Instantiate<Ground>(this);
 	pPlayer_->SetGround(pGround);
 
-	Camera::SetPosition({ pPlayer_->GetPosition().x, pPlayer_->GetPosition().y + CAMERA_HEIGHT,-22 });
-	Camera::SetTarget({ pPlayer_->GetPosition().x, pPlayer_->GetPosition().y + CAMERA_HEIGHT,0 });
+	Camera::SetPosition({ pPlayer_->GetPosition().x, pPlayer_->GetPosition().y + CAMERA_HEIGHT, -22 });
+	Camera::SetTarget({ pPlayer_->GetPosition().x, pPlayer_->GetPosition().y + CAMERA_HEIGHT, 0 });
 
 	pText_ = new Text;
-	pText_->Initialize();//テキストの初期化
+	pText_->Initialize();
 }
 
-//更新
 void TestScene::Update()
 {
-	if (pPlayer_->GetPosition().x > START_POS.x && pPlayer_->GetPosition().x < END_POS_X) {
-		Camera::SetPosition({ pPlayer_->GetPosition().x, START_POS.y + CAMERA_HEIGHT,-22 });
-		Camera::SetTarget({ pPlayer_->GetPosition().x, START_POS.y + CAMERA_HEIGHT,0 });
+	if (pPlayer_->GetPosition().x > START_POS.x) {
+		Camera::SetPosition({ pPlayer_->GetPosition().x, START_POS.y + CAMERA_HEIGHT, -22 });
+		Camera::SetTarget({ pPlayer_->GetPosition().x, START_POS.y + CAMERA_HEIGHT, 0 });
+	}
+	else {
+		Camera::SetPosition({ START_POS.x, START_POS.y + CAMERA_HEIGHT, -22 });
+		Camera::SetTarget({ START_POS.x, START_POS.y + CAMERA_HEIGHT, 0 });
 	}
 
+	if (pPlayer_->GetPosition().y < -5.0f)
+	{
+		pPlayer_->SetPosition(START_POS);
+	}
 }
 
-//描画
 void TestScene::Draw()
 {
 	std::string scrText;
@@ -67,8 +69,7 @@ void TestScene::Draw()
 	pText_->Draw(500, 100, foodBuffer);
 }
 
-//開放
 void TestScene::Release()
 {
-	pText_->Release();//テキストの開放
+	pText_->Release();
 }

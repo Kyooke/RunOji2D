@@ -1,35 +1,53 @@
 #pragma once
 #include "Engine/GameObject.h"
-#include "Engine/SphereCollider.h"
+#include <vector>
 
-class Ground;//前方宣言
+class Ground;
 
-class Player :
-    public GameObject
+class Player : public GameObject
 {
 public:
-	//コンストラクタ
-	//引数：parent  親オブジェクト（SceneManager）
-	Player(GameObject* parent);
-	//初期化
-	void Initialize() override;
-	//更新
-	void Update() override;
-	//描画
-	void Draw() override;
-	//開放
-	void Release() override;
-	void SetGround(Ground* ground) { 
-		ground_ = ground;
-	}
-	void OnCollision(GameObject* pTarget) override;
-private:
-	bool HandleInput();                                          // 入力処理、ブレーキ中ならtrue
-	bool UpdateTurn();                                           // 回転処理、回転中ならtrue
-	void UpdateJump();                                           // ジャンプ・重力処理
-	void ResolveWallCollision(XMVECTOR& pos, const XMVECTOR& move); // 壁当たり判定
-	int hWalkModel_;
-	int hIdleModel_;//待機アニメーションのモデルハンドル
-	Ground* ground_;//地面オブジェクトのポインタ
-};
+	// プレイヤーステートと方向の列挙型
+	enum PlayerState
+	{
+		PLAYER_IDLE,
+		PLAYER_WALK,
+		PLAYER_TURN
+	};
 
+	enum PlayerDirection
+	{
+		PLAYER_RIGHT,
+		PLAYER_LEFT
+	};
+
+	Player(GameObject* parent);
+	~Player() {}
+
+	void Initialize() override;
+	void Update() override;
+	void Draw() override;
+	void Release() override;
+
+	bool HandleInput();
+	bool UpdateTurn();
+	void UpdateJump();
+	void ResolveWallCollision(XMVECTOR& pos, const XMVECTOR& move);
+
+	void SetGround(Ground* ground);
+
+	XMFLOAT3 GetPosition();
+	void SetPosition(XMFLOAT3 pos);
+
+private:
+	int hModel_;
+	float currentSpeed;
+	PlayerState pstate;
+	PlayerDirection pdirection;
+
+	Ground* ground_; // ※Player.cppで使っている名前に統一
+	bool isGrounded;
+	float jumpVelocity;
+
+	std::vector<std::vector<int>> gmap;
+};

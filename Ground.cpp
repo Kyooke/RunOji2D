@@ -18,7 +18,7 @@ Ground::Ground(GameObject* parent)
 {
 	CsvReader csvData;
 	if (!csvData.Load("map.csv")) {
-		return; // “Ç‚İ‚İ¸”s‚ÌƒK[ƒh
+		return; 
 	}
 
 	mapWidth_ = (int)csvData.GetWidth();   // —ñ”
